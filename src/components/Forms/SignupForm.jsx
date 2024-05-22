@@ -1,56 +1,74 @@
-import { useState, useContext } from 'react';
-import AuthContext from '../../context/AuthContext';
+import Alert from "@mui/material/Alert";
+import Fade from "@mui/material/Fade";
+import { useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "../../context/AuthContext";
 
 const SignUpForm = () => {
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-    });
-    const [errors, setErrors] = useState({});
-    const { register } = useContext(AuthContext);
+    const [alert, setAlert] = useState({ open: false, type: "", message: "" });
+    const { register: registerUser } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const {
+        handleSubmit,
+        register,
+        watch,
+        formState: { errors: formErrors, isSubmitting },
+    } = useForm();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-        if (!formData.username) newErrors.username = 'Username is required';
-        if (!formData.email) newErrors.email = 'Email is required';
-        if (!formData.password) newErrors.password = 'Password is required';
-        if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = "Passwords don't match";
-        }
-        return newErrors;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const newErrors = validateForm();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-
-        const response = await register(
+    const onSubmit = async (formData) => {
+        const response = await registerUser(
             formData.username,
             formData.email,
             formData.password,
         );
 
-        if (response && response.error) {
-            setErrors({ backend: response.error });
+        if (response.error) {
+            const errorMessages = Object.values(response.error).flatMap(
+                (errors) => errors,
+            );
+            setAlert({
+                open: true,
+                type: "error",
+                message: (
+                    <div>
+                        <ul
+                            style={{
+                                listStyleType: "disc",
+                                paddingLeft: "20px",
+                            }}
+                        >
+                            {errorMessages.map((error, index) => (
+                                <li key={index}>{error}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ),
+            });
         } else {
-            setErrors({});
+            setAlert({
+                open: true,
+                type: "success",
+                message: "Registration successful! Redirecting to login...",
+            });
         }
     };
 
+    useEffect(() => {
+        if (alert.open) {
+            const timer = setTimeout(() => {
+                setAlert({ ...alert, open: false });
+                if (alert.type === "success") {
+                    navigate("/login");
+                }
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [alert]);
+
     return (
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div>
                     <label className="block text-sm font-medium leading-6 text-gray-900">
                         Username
@@ -58,14 +76,14 @@ const SignUpForm = () => {
                     <div className="mt-2">
                         <input
                             type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
+                            {...register("username", {
+                                required: "Username is required",
+                            })}
                             className="block w-full rounded-md border-0 p-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
-                        {errors.username && (
+                        {formErrors.username && (
                             <span className="text-red-500">
-                                {errors.username}
+                                {formErrors.username.message}
                             </span>
                         )}
                     </div>
@@ -77,13 +95,19 @@ const SignUpForm = () => {
                     <div className="mt-2">
                         <input
                             type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            {...register("email", {
+                                required: "Email is required",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Invalid email address",
+                                },
+                            })}
                             className="block w-full rounded-md border-0 p-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
-                        {errors.email && (
-                            <span className="text-red-500">{errors.email}</span>
+                        {formErrors.email && (
+                            <span className="text-red-500">
+                                {formErrors.email.message}
+                            </span>
                         )}
                     </div>
                 </div>
@@ -94,14 +118,19 @@ const SignUpForm = () => {
                     <div className="mt-2">
                         <input
                             type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
+                            {...register("password", {
+                                required: "Password is required",
+                                minLength: {
+                                    value: 6,
+                                    message:
+                                        "Password must be at least 6 characters",
+                                },
+                            })}
                             className="block w-full rounded-md border-0 p-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
-                        {errors.password && (
+                        {formErrors.password && (
                             <span className="text-red-500">
-                                {errors.password}
+                                {formErrors.password.message}
                             </span>
                         )}
                     </div>
@@ -113,30 +142,41 @@ const SignUpForm = () => {
                     <div className="mt-2">
                         <input
                             type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
+                            {...register("confirmPassword", {
+                                required: "Confirm Password is required",
+                                validate: (value) =>
+                                    value === watch("password") ||
+                                    "Passwords don't match",
+                            })}
                             className="block w-full rounded-md border-0 p-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         />
-                        {errors.confirmPassword && (
+                        {formErrors.confirmPassword && (
                             <span className="text-red-500">
-                                {errors.confirmPassword}
+                                {formErrors.confirmPassword.message}
                             </span>
                         )}
                     </div>
                 </div>
                 <div>
-                    {errors.backend && (
-                        <span className="text-red-500">{errors.backend}</span>
-                    )}
                     <button
                         type="submit"
+                        disabled={isSubmitting}
                         className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
-                        Sign up
+                        {isSubmitting ? "Submitting..." : "Sign up"}
                     </button>
                 </div>
             </form>
+
+            <Fade
+                in={alert.open}
+                timeout={{ enter: 500, exit: 500 }}
+                className="mt-5"
+            >
+                <Alert severity={alert.type} className="mb-4">
+                    {alert.message}
+                </Alert>
+            </Fade>
         </div>
     );
 };

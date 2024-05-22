@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import useFetch from '../../../hooks/useFetch';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import useFetch from "../../hooks/useFetch";
 
 const Navbar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -8,39 +8,28 @@ const Navbar = () => {
         data: userProfile,
         isLoading,
         error,
-    } = useFetch('/api/user/profile');
+    } = useFetch("/api/user/profile");
 
     const handleLogout = () => {
         setIsLoggedIn(false);
     };
     return (
-        <nav className="bg-gray-900">
-            <div className="container mx-auto flex items-center justify-between px-4 py-2">
-                <Link to="/" className="text-lg font-semibold text-white">
-                    Blogify
-                </Link>
+        <nav>
+            <div className="mx-auto flex items-center justify-between px-4 py-2">
+                <h1 className="text-4xl font-semibold ">Blogify</h1>
                 <ul className="flex items-center space-x-4">
                     <li>
-                        <Link
-                            to="/blogs"
-                            className="text-white hover:text-gray-300"
-                        >
+                        <Link to="/blogs" className=" hover:text-gray-300">
                             Blogs
                         </Link>
                     </li>
                     <li>
-                        <Link
-                            to="/about"
-                            className="text-white hover:text-gray-300"
-                        >
+                        <Link to="/about" className=" hover:text-gray-300">
                             About Us
                         </Link>
                     </li>
                     <li>
-                        <Link
-                            to="/awards"
-                            className="text-white hover:text-gray-300"
-                        >
+                        <Link to="/awards" className=" hover:text-gray-300">
                             Awards and Recognitions
                         </Link>
                     </li>
@@ -61,22 +50,19 @@ const Navbar = () => {
                             )}
                             <button
                                 onClick={handleLogout}
-                                className="text-white hover:text-gray-300"
+                                className=" hover:text-gray-300"
                             >
                                 Logout
                             </button>
                         </>
                     ) : (
                         <div>
-                            <Link
-                                to="/login"
-                                className="text-white hover:text-gray-300"
-                            >
+                            <Link to="/login" className=" hover:text-gray-300">
                                 Login
                             </Link>
                             <Link
-                                to="/signup"
-                                className="text-white hover:text-gray-300"
+                                to="/register"
+                                className=" hover:text-gray-300"
                             >
                                 Signup
                             </Link>

@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = "http://localhost:8000/api";
 
 const login = async (username, password) => {
     try {
@@ -13,7 +13,7 @@ const login = async (username, password) => {
         if (error.response) {
             return { error: error.response.data };
         }
-        return { error: 'Unexpected error occurred' };
+        return { error: "Unexpected error occurred" };
     }
 };
 
@@ -29,7 +29,7 @@ const register = async (username, email, password) => {
         if (error.response) {
             return error.response.data;
         } else {
-            console.error('Register error', error);
+            console.error("Register error", error);
         }
         return null;
     }

@@ -1,4 +1,4 @@
-import Navbar from '../components/UI/Navbar/Navbar';
+import Navbar from "../components/UI/Navbar";
 const Home = () => {
     return (
         <div>
